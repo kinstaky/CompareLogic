@@ -242,6 +242,17 @@ public:
 	int PrintTree(Symbol *symbol, int layer = 0, int child = 0, int brother_size = 0) const noexcept;
 
 
+	
+	/// @brief get the syntax tree root
+	///
+	/// @returns pointer to the root production
+	///
+	/// @exceptsafe Shall not throw exceptions.
+	///
+	inline Production<VarType>* Root() const noexcept {
+		return syntax_tree_root_;
+	}
+
 protected:
 
 	// template<typename... ArgTypes>
