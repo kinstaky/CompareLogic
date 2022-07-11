@@ -232,14 +232,12 @@ public:
 	/// @brief print the tree structure of the concrete syntax tree
 	///
 	/// @param[in] symbol the symbol to print
-	/// @param[in] layer present layer from the root
-	/// @param[in] child index of the symbol from its parent
-	/// @param[in] brother_size size of the children of symbol's parent
+	/// @param[in] prefix the prefix string, default is empty string
 	/// @returns 0 on success, -1 on failure
 	///
 	/// @exceptsafe Shall not throw exceptions.
 	///
-	int PrintTree(Symbol *symbol, int layer = 0, int child = 0, int brother_size = 0) const noexcept;
+	int PrintTree(Symbol *symbol, std::string prefix = "") const noexcept;
 
 
 	

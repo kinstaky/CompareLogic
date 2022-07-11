@@ -279,7 +279,7 @@ TEST(SLRSyntaxParserTest, ActionTable) {
 
 
 
-TEST(SLRSyntaxParserTest, AddMultiParse) {
+TEST(SLRSyntaxParserTest, Parse) {
 	// check add multi grammar
 	{
 		int index = 0;
@@ -291,6 +291,7 @@ TEST(SLRSyntaxParserTest, AddMultiParse) {
 			SLRSyntaxParser parser(&grammar);
 			ASSERT_EQ(parser.Parse(tokens), 0);
 
+			// parser.PrintTree(parser.Root());
 			for (int i = 0; i < value[index].size(); ++i) {
 				EXPECT_EQ(parser.AttachIdentifier(i, (void*)&(value[index][i])), 0);
 			}
@@ -301,6 +302,7 @@ TEST(SLRSyntaxParserTest, AddMultiParse) {
 			++index;
 		}
 	}
+	// check logical grammar
 	{
 		int index = 0;
 		const std::vector<std::vector<TokenPtr>> &tokens_list = kLogicalTokens;
@@ -311,6 +313,7 @@ TEST(SLRSyntaxParserTest, AddMultiParse) {
 			SLRSyntaxParser parser(&grammar);
 			ASSERT_EQ(parser.Parse(tokens), 0);
 
+			// parser.PrintTree(parser.Root());
 			for (int i = 0; i < value[index].size(); ++i) {
 				EXPECT_EQ(parser.AttachIdentifier(i, (void*)&(value[index][i])), 0);
 			}
@@ -322,10 +325,3 @@ TEST(SLRSyntaxParserTest, AddMultiParse) {
 		}
 	}
 }
-
-
-
-
-// TEST(SLRSyntaxParserTest, LogicalParse) {
-
-// }

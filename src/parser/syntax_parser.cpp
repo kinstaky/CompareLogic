@@ -125,7 +125,7 @@ int SyntaxParser<VarType>::AttachIdentifier(int index, void *var_ptr) noexcept {
 
 
 template<typename VarType>
-int SyntaxParser<VarType>::PrintTree(Symbol *symbol, int layer, int child, int brother_size) const noexcept {
+int SyntaxParser<VarType>::PrintTree(Symbol *symbol, std::string prefix) const noexcept {
 	// some unicode vertical and horizontal lines
 	const std::string kBoxHorizontal = "\u2500";
 	const std::string kBoxVertical = "\u2502";
@@ -133,42 +133,41 @@ int SyntaxParser<VarType>::PrintTree(Symbol *symbol, int layer, int child, int b
 	const std::string kBoxVerticalRight = "\u251C";
 
 
-	// for (int i = 0; i < layer-1; ++i) {
-	// 	std::cout << kBoxVertical << " ";
-	// }
-	// if (layer > 0) {
-	// 	if (child == brother_size-1) {
-	// 		// last child
-	// 		std::cout << kBoxUpRight << kBoxHorizontal;
-	// 	} else if (child == 0) {
-	// 		// first child
-	// 		std::cout << kBoxVerticalRight << kBoxHorizontal;
-	// 	} else {
-	// 		// middle child
-	// 		std::cout << kBoxVerticalRight << kBoxHorizontal;
-	// 	}
-	// }
-	for (int i = 0; i < layer; ++i) {
-		std::cout << "  ";
-	}
-	
-		
-
+	// print this token or production set first
 	if (symbol->Type() > 0) {
-		// print this token
-		std::cout << ((Token*)symbol)->Value() << std::endl;
+		// print token
+		std::cout << prefix << ((Token*)symbol)->Value() << std::endl;
 	} else if (symbol->Type() == kSymbolType_Production) {
-
-		// print this production
+		// print production set 
 		Production<VarType> *production = (Production<VarType>*)symbol;
 		ProductionFactory<VarType> *factory = (ProductionFactory<VarType>*)production->Origin();
 		ProductionFactorySet<VarType> *set = (ProductionFactorySet<VarType>*)factory->Parent();
 		int set_index = grammar_->FindSet(set);
-		std::cout << "S" << set_index << std::endl;
+		std::cout << prefix << "S" << set_index << std::endl;
 
-		// print its child
-		for (int i = 0; i < production->size(); ++i) {
-			PrintTree(production->Child(i), layer+1, i, production->size());
+		// print its children
+		if (production->size() > 0) {
+			// genearte new prefix
+			std::string children_prefix;
+			for (int i = 0; i < prefix.length(); ++i) {
+				if (prefix[i] ==  ' ') {
+					// prefix is space if last line is space
+					children_prefix +=  " ";
+				} else if (prefix.substr(i, 3) == kBoxVertical || prefix.substr(i, 3) == kBoxVerticalRight) {
+					// prefix is vertical line if last line contains vertical line
+					children_prefix += kBoxVertical;
+					i += 2;
+				} else {
+					// prefix is space if last line is up right or horizontal line
+					children_prefix += " ";
+					i += 2;
+				}
+			}
+			// print children
+			for (int i = 0; i < production->size()-1; ++i) {
+				PrintTree(production->Child(i), children_prefix + kBoxVerticalRight + kBoxHorizontal);
+			}
+			PrintTree(production->Child(production->size()-1), children_prefix + kBoxUpRight + kBoxHorizontal);
 		}
 
 	} else {
