@@ -11,6 +11,10 @@ target_compile_features(
 	test_lexer
 	PRIVATE cxx_std_17
 )
+target_compile_options(
+	test_lexer
+	PRIVATE -Werror -Wall -Wextra
+)
 target_link_libraries(
 	test_lexer
 	PRIVATE gtest_main
@@ -27,6 +31,10 @@ target_compile_features(
 	test_production
 	PRIVATE cxx_std_17
 )
+target_compile_options(
+	test_production
+	PRIVATE -Werror -Wall -Wextra
+)
 target_link_libraries(
 	test_production
 	PRIVATE gtest_main
@@ -42,6 +50,10 @@ add_executable(
 target_compile_features(
 	test_grammar
 	PRIVATE cxx_std_17
+)
+target_compile_options(
+	test_grammar
+	PRIVATE -Werror -Wall -Wextra
 )
 target_link_libraries(
 	test_grammar
@@ -63,6 +75,10 @@ add_executable(
 target_compile_features(
 	test_syntax_parser
 	PRIVATE cxx_std_17
+)
+target_compile_options(
+	test_syntax_parser
+	PRIVATE -Werror -Wall -Wextra
 )
 target_link_libraries(
 	test_syntax_parser

@@ -106,8 +106,8 @@ public:
 private:
 	
 	struct Action* table_;
-	int symbol_size_;
 	int collection_size_;
+	int symbol_size_;
 	int size_;
 };
 
@@ -202,7 +202,7 @@ public:
 	///
 	/// @exceptsafe Shall not throw exceptions.
 	///
-	int AttachIdentifier(int index, void *var_ptr) noexcept;
+	int AttachIdentifier(size_t index, void *var_ptr) noexcept;
 
 
 	// int AttachIdentifiers(void *var_ptr);

@@ -163,7 +163,7 @@ bool SymbolInFirst(
 	if (symbol->Type() == kSymbolType_Identifier) {
 
 		/// check whether this symbol is an identifier
-		for (int i = 0; i < type.size(); ++i) {
+		for (size_t i = 0; i < type.size(); ++i) {
 			if (type[i] == kSymbolType_Identifier) {
 				return true;
 			}
@@ -171,7 +171,7 @@ bool SymbolInFirst(
 	} else {
 
 		// check symbols except identifier
-		for (int i = 0; i < type.size(); ++i) {
+		for (size_t i = 0; i < type.size(); ++i) {
 			if (type[i] == symbol->Type() && first[i] == ((Token*)symbol)->Value()) {
 				return true;
 			}
@@ -184,7 +184,7 @@ bool SymbolInFirst(
 
 
 bool SymbolInFollow(
-	int index, 
+	size_t index, 
 	const std::vector<std::string> &follow,
 	const std::vector<int> &type, 
 	const std::vector<Symbol*> &symbols
@@ -201,7 +201,7 @@ bool SymbolInFollow(
 	} else {
 		// other terminal symbols
 		Symbol *symbol = symbols[index];
-		for (int i = 0; i < follow.size(); ++i) {
+		for (size_t i = 0; i < follow.size(); ++i) {
 			if (symbol->Type() != type[i]) {
 				continue;
 			}
@@ -332,7 +332,7 @@ TEST(GrammarTest, NotLanguage) {
 		production_e_id->Item(1)
 	};
 	
-	for (int i = 0; i < core_items.size(); ++i) {
+	for (size_t i = 0; i < core_items.size(); ++i) {
 		std::vector<ProductionItem<bool>*> closure;
 		EXPECT_EQ(grammar.MakeClosure(core_items[i], closure), 0);
 		EXPECT_EQ(closure.size(), closure_size[i])
@@ -352,8 +352,8 @@ TEST(GrammarTest, NotLanguage) {
 		{-1, -1, -1, -1, -1},
 		{-1, -1, -1, -1, -1}
 	};
-	for (int c = 0; c < collection_goto.size(); ++c) {
-		for (int s = 0; s < symbol_list.size(); ++s) {
+	for (size_t c = 0; c < collection_goto.size(); ++c) {
+		for (size_t s = 0; s < symbol_list.size(); ++s) {
 			EXPECT_EQ(grammar.CollectionGoto(c, s), collection_goto[c][s])
 				<< "collection goto error, collection " << c
 				<< ", symbol " << s << std::endl;
@@ -392,7 +392,7 @@ TEST(GrammarTest, FirstList) {
 			add_multi_grammar_first_list[set].size()
 		);
 
-		for (int i = 0; i < first_set.size(); ++i) {
+		for (size_t i = 0; i < first_set.size(); ++i) {
 			Symbol *symbol = symbol_list[first_set[i]];
 			EXPECT_TRUE(SymbolInFirst(symbol, add_multi_grammar_first_list[i], add_multi_grammar_first_type[i]));
 		}
@@ -414,7 +414,7 @@ TEST(GrammarTest, FirstList) {
 			arithmetic_grammar_first_list[set].size()
 		);
 
-		for (int i = 0; i < first_set.size(); ++i) {
+		for (size_t i = 0; i < first_set.size(); ++i) {
 			Symbol *symbol = symbol_list[first_set[i]];
 			EXPECT_TRUE(SymbolInFirst(symbol, arithmetic_grammar_first_list[i], arithmetic_grammar_first_type[i]));
 		}
@@ -436,7 +436,7 @@ TEST(GrammarTest, FirstList) {
 			logical_grammar_first_list[set].size()
 		);
 
-		for (int i = 0; i < first_set.size(); ++i) {
+		for (size_t i = 0; i < first_set.size(); ++i) {
 			Symbol *symbol = symbol_list[first_set[i]];
 			EXPECT_TRUE(
 				SymbolInFirst(
@@ -469,7 +469,7 @@ TEST(GrammarTest, FollowList) {
 			add_multi_following_list[set].size()
 		) << "folloing list size error: set " << set;
 
-		for (int i = 0; i < follow_list.size(); ++i) {
+		for (size_t i = 0; i < follow_list.size(); ++i) {
 			EXPECT_TRUE(
 				SymbolInFollow(
 					follow_list[i], 
@@ -496,7 +496,7 @@ TEST(GrammarTest, FollowList) {
 			arithmetic_following_list[set].size()
 		) << "folloing list size error: set " << set;
 
-		for (int i = 0; i < follow_list.size(); ++i) {
+		for (size_t i = 0; i < follow_list.size(); ++i) {
 			EXPECT_TRUE(
 				SymbolInFollow(
 					follow_list[i], 
@@ -523,7 +523,7 @@ TEST(GrammarTest, FollowList) {
 			logical_following_list[set].size()
 		) << "folloing list size error: set " << set;
 
-		for (int i = 0; i < follow_list.size(); ++i) {
+		for (size_t i = 0; i < follow_list.size(); ++i) {
 			EXPECT_TRUE(
 				SymbolInFollow(
 					follow_list[i], 

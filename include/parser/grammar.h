@@ -74,8 +74,8 @@ public:
 	///
 	/// @exceptsafe Shall not throw exceptions.
 	///
-	inline ProductionItemCollection<VarType>* Collection(int index) noexcept {
-		if (index < 0 || index >= collections_.size()) {
+	inline ProductionItemCollection<VarType>* Collection(size_t index) noexcept {
+		if (index >= collections_.size()) {
 			return nullptr;
 		}
 		return collections_[index];
@@ -120,7 +120,7 @@ public:
 	///
 	/// @exceptsafe Shall not throw exceptions.
 	///
-	int CollectionGoto(int collection, int symbol) noexcept;
+	int CollectionGoto(size_t collection, size_t symbol) noexcept;
 
 
 	/// @brief find the possible first symbols of a non-terminal item
@@ -130,7 +130,7 @@ public:
 	///
 	/// @exceptsafe Shall not throw exceptions.
 	///
-	std::vector<int> First(int set) noexcept;
+	std::vector<int> First(size_t set) noexcept;
 
 
 	/// @brief find the possible first symbols for a list of symbols
@@ -147,7 +147,7 @@ public:
 	///
 	/// @exceptsafe Shall not throw exceptions.
 	///
-	std::vector<int> First(ProductionFactory<VarType> *production, int child) noexcept;
+	std::vector<int> First(ProductionFactory<VarType> *production, size_t child) noexcept;
 
 
 
@@ -158,7 +158,7 @@ public:
 	///
 	/// @exceptsafe Shall not throw exceptions.
 	///
-	int FirstIncludeEmpty(int set) noexcept;
+	int FirstIncludeEmpty(size_t set) noexcept;
 
 
 
@@ -176,7 +176,7 @@ public:
 	///
 	/// @exceptsafe Shall not throw exceptions.
 	///
-	int FirstIncludeEmpty(ProductionFactory<VarType> *production, int child) noexcept;
+	int FirstIncludeEmpty(ProductionFactory<VarType> *production, size_t child) noexcept;
 
 
 
@@ -197,7 +197,7 @@ public:
 	///
 	/// @exceptsafe Shall not throw exceptions.
 	///
-	std::vector<int> Following(int set) noexcept;
+	std::vector<int> Following(size_t set) noexcept;
 
 
 	/// @brief generate the following table

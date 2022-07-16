@@ -48,7 +48,7 @@ int Grammar<VarType>::AddProductionSet(ProductionFactorySet<VarType> *set, bool 
 
 	for (auto factory : *set) {
 		if (!factory) continue;
-		for (int i = 0; i != factory->size(); ++i) {
+		for (size_t i = 0; i != factory->size(); ++i) {
 			Symbol *symbol = factory->Child(i);
 			if (symbol && FindSymbol(symbol) < 0) {
 				symbol_list_.push_back(symbol);
@@ -75,7 +75,10 @@ bool Grammar<VarType>::IsComplete() noexcept {
 
 template<typename VarType>
 int Grammar<VarType>::GenerateCollections(int look_ahead) noexcept {
-
+	if (look_ahead == 1) {
+		std::cerr << "look ahead 1 todo." << std::endl;
+		return -1;
+	}
 	// generate items
 	for (ProductionFactorySet<VarType>* set : production_sets_) {
 		for (ProductionFactory<VarType>* production : *set) {
@@ -100,7 +103,7 @@ int Grammar<VarType>::GenerateCollections(int look_ahead) noexcept {
 
 			// and all the other items (except for the first itme) from
 			// the production are core items
-			while (item = production->GenerateItems()) {
+			while ((item = production->GenerateItems())) {
 				core_items_.push_back(item);
 			}
 		}
@@ -333,12 +336,12 @@ ProductionItem<VarType>* Grammar<VarType>::NextItem(ProductionItem<VarType> *ite
 
 
 template<typename VarType>
-int Grammar<VarType>::CollectionGoto(int collection, int symbol) noexcept {
+int Grammar<VarType>::CollectionGoto(size_t collection, size_t symbol) noexcept {
 	if (collection >= collections_.size()) return -1;
 	if (symbol >= symbol_list_.size()) return -1;
 
 	auto c = collections_[collection]->Goto(symbol_list_[symbol]);
-	for (int ic = 0; ic < collections_.size(); ++ic) {
+	for (size_t ic = 0; ic < collections_.size(); ++ic) {
 		if (collections_[ic] == c) {
 			return ic;
 		}
@@ -381,7 +384,7 @@ std::vector<Symbol*> Grammar<VarType>::SymbolList() const noexcept {
 
 
 template<typename VarType>
-std::vector<int> Grammar<VarType>::First(int set) noexcept {
+std::vector<int> Grammar<VarType>::First(size_t set) noexcept {
 	if (!generate_first_) {
 
 		if (GenerateFirst() == -1) {
@@ -406,7 +409,7 @@ std::vector<int> Grammar<VarType>::First(int set) noexcept {
 
 
 template<typename VarType>
-std::vector<int> Grammar<VarType>::First(ProductionFactory<VarType> *production, int child) noexcept {
+std::vector<int> Grammar<VarType>::First(ProductionFactory<VarType> *production, size_t child) noexcept {
 	if (!generate_first_) {
 		if (GenerateFirst() == -1) {
 			return std::vector<int>(1, -1);
@@ -418,7 +421,7 @@ std::vector<int> Grammar<VarType>::First(ProductionFactory<VarType> *production,
 
 	// result
 	std::set<int> result_set;
-	for (int c = 0; c < production->size(); ++c) {
+	for (size_t c = 0; c < production->size(); ++c) {
 		Symbol *symbol = production->Child(c);
 
 		if (symbol->Type() > 0) {
@@ -465,7 +468,7 @@ std::vector<int> Grammar<VarType>::First(ProductionFactory<VarType> *production,
 
 
 template<typename VarType>
-int Grammar<VarType>::FirstIncludeEmpty(int set) noexcept {
+int Grammar<VarType>::FirstIncludeEmpty(size_t set) noexcept {
 	if (!generate_first_) {
 		if (GenerateFirst() == -1) {
 			return -1;
@@ -479,7 +482,7 @@ int Grammar<VarType>::FirstIncludeEmpty(int set) noexcept {
 
 
 template<typename VarType>
-int Grammar<VarType>::FirstIncludeEmpty(ProductionFactory<VarType> *production, int child) noexcept {
+int Grammar<VarType>::FirstIncludeEmpty(ProductionFactory<VarType> *production, size_t child) noexcept {
 	if (!generate_first_) {
 		if (GenerateFirst() == -1) {
 			return -1;
@@ -491,7 +494,7 @@ int Grammar<VarType>::FirstIncludeEmpty(ProductionFactory<VarType> *production, 
 	
 	// result
 	bool result = true;
-	for (int c = child; c < production->size(); ++c) {
+	for (size_t c = child; c < production->size(); ++c) {
 		Symbol *symbol = production->Child(c);
 		
 		if (symbol->Type() > 0) {
@@ -527,7 +530,7 @@ int Grammar<VarType>::GenerateFirst() noexcept {
 		change_first = false;
 
 
-		for (int set = 0; set < production_sets_.size(); ++set) {
+		for (size_t set = 0; set < production_sets_.size(); ++set) {
 			for (auto production : *production_sets_[set]) {
 // std::cout << "set " << set << " production ?  size " << production->size() << std::endl;
 
@@ -539,7 +542,7 @@ int Grammar<VarType>::GenerateFirst() noexcept {
 					}
 				} else {
 
-					for (int ic = 0; ic < production->size(); ++ic) {
+					for (size_t ic = 0; ic < production->size(); ++ic) {
 // std::cout << "child " << ic << std::endl;
 						Symbol *child = production->Child(ic);
 
@@ -606,7 +609,7 @@ int Grammar<VarType>::GenerateFirst() noexcept {
 
 
 template<typename VarType>
-std::vector<int> Grammar<VarType>::Following(int set) noexcept {
+std::vector<int> Grammar<VarType>::Following(size_t set) noexcept {
 	if (!generate_following_) {
 		if (GenerateFollowing() == -1) {
 			return std::vector<int>(1, -1);
@@ -700,7 +703,6 @@ int Grammar<VarType>::GenerateFollowing() noexcept {
 
 								// add First symbols of next non-terminal symbol
 								// to the following, except for null
-								int next_index = FindSymbol(next);
 								auto first_list = First(production, child+1);
 								for (auto next_first : first_list) {
 

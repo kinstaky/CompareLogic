@@ -200,8 +200,8 @@ TEST(SLRSyntaxParserTest, ActionTable) {
 		AddMultiGrammar grammar;
 		SLRSyntaxParser parser(&grammar);
 		ActionTable *table = parser.GetActionTable();
-		for (int c = 0; c < action_type.size(); ++c) {
-			for (int s = 0; s < action_type[0].size(); ++s) {
+		for (size_t c = 0; c < action_type.size(); ++c) {
+			for (size_t s = 0; s < action_type[0].size(); ++s) {
 				Action *action = table->GetAction(c, s);
 				EXPECT_EQ(action->type, action_type[c][s])
 					<< "error action type collection " << c
@@ -211,12 +211,11 @@ TEST(SLRSyntaxParserTest, ActionTable) {
 						<< "error action value collection, collection " << c
 						<< ", symbol " << s;
 				} else if (action->type == Action::kTypeReduce) {
-					ProductionFactory<double> *production = (ProductionFactory<double>*)action->production;
 					int offset = 0;
 					for (int i = 0; i < grammar.ProductionSetSize(); ++i) {
 						bool found = false;
 						ProductionFactorySet<double> *set = grammar.ProductionSet(i);
-						for (int j = 0; j < set->size(); ++j) {
+						for (size_t j = 0; j < set->size(); ++j) {
 							if ((*set)[j] == action->production) {
 								offset += j;
 								found = true;
@@ -243,8 +242,8 @@ TEST(SLRSyntaxParserTest, ActionTable) {
 		LogicalGrammar grammar;
 		SLRSyntaxParser parser(&grammar);
 		ActionTable *table = parser.GetActionTable();
-		for (int c = 0; c < action_type.size(); ++c) {
-			for (int s = 0; s < action_type[0].size(); ++s) {
+		for (size_t c = 0; c < action_type.size(); ++c) {
+			for (size_t s = 0; s < action_type[0].size(); ++s) {
 				Action *action = table->GetAction(c, s);
 				EXPECT_EQ(action->type, action_type[c][s])
 					<< "error action type collection " << c
@@ -254,12 +253,11 @@ TEST(SLRSyntaxParserTest, ActionTable) {
 						<< "error action value collection, collection " << c
 						<< ", symbol " << s;
 				} else if (action->type == Action::kTypeReduce) {
-					ProductionFactory<bool> *production = (ProductionFactory<bool>*)action->production;
 					int offset = 0;
 					for (int i = 0; i < grammar.ProductionSetSize(); ++i) {
 						bool found = false;
 						ProductionFactorySet<bool> *set = grammar.ProductionSet(i);
-						for (int j = 0; j < set->size(); ++j) {
+						for (size_t j = 0; j < set->size(); ++j) {
 							if ((*set)[j] == action->production) {
 								offset += j;
 								found = true;
@@ -292,7 +290,7 @@ TEST(SLRSyntaxParserTest, Parse) {
 			ASSERT_EQ(parser.Parse(tokens), 0);
 
 			// parser.PrintTree(parser.Root());
-			for (int i = 0; i < value[index].size(); ++i) {
+			for (size_t i = 0; i < value[index].size(); ++i) {
 				EXPECT_EQ(parser.AttachIdentifier(i, (void*)&(value[index][i])), 0);
 			}
 			EXPECT_EQ(result[index], parser.Eval())
@@ -314,7 +312,7 @@ TEST(SLRSyntaxParserTest, Parse) {
 			ASSERT_EQ(parser.Parse(tokens), 0);
 
 			// parser.PrintTree(parser.Root());
-			for (int i = 0; i < value[index].size(); ++i) {
+			for (size_t i = 0; i < value[index].size(); ++i) {
 				EXPECT_EQ(parser.AttachIdentifier(i, (void*)&(value[index][i])), 0);
 			}
 			EXPECT_EQ(result[index], parser.Eval())

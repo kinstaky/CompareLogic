@@ -128,14 +128,14 @@ public:
 	int SetChildren(Symbol *first, ArgTypes... children) noexcept {
 		// first child
 		if (setting_child_ == -1) {
-			for (int i = 0; i != children_size_; ++i) {
+			for (size_t i = 0; i != children_size_; ++i) {
 				children_[i] = nullptr;
 			}
 			setting_child_ = 0;
 		}
 
 		// set child
-		if (setting_child_ >= children_size_) {
+		if (setting_child_ >= int(children_size_)) {
 			return -1;
 		}
 		children_[setting_child_] = first;

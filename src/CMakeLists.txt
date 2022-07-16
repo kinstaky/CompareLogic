@@ -15,6 +15,10 @@ target_compile_features(
 	logical_grammar
 	PRIVATE cxx_std_17
 )
+target_compile_options(
+	logical_grammar
+	PRIVATE -Werror -Wall -Wextra
+)
 target_link_libraries(
 	logical_grammar
 	PUBLIC token
@@ -35,6 +39,10 @@ target_compile_features(
 	arithmetic_grammar
 	PRIVATE cxx_std_17
 )
+target_compile_options(
+	arithmetic_grammar
+	PRIVATE -Werror -Wall -Wextra
+)
 target_link_libraries(
 	arithmetic_grammar
 	PUBLIC token
@@ -54,6 +62,10 @@ target_include_directories(
 target_compile_features(
 	logic_comparer
 	PRIVATE cxx_std_17
+)
+target_compile_options(
+	logic_comparer
+	PRIVATE -Werror -Wall -Wextra
 )
 target_link_libraries(
 	logic_comparer

@@ -15,6 +15,10 @@ target_compile_features(
 	token
 	PRIVATE cxx_std_17
 )
+target_compile_options(
+	token
+	PRIVATE -Werror -Wall -Wextra
+)
 
 
 # prodution library
@@ -29,6 +33,10 @@ target_include_directories(
 target_compile_features(
 	production
 	PRIVATE cxx_std_17
+)
+target_compile_options(
+	production
+	PRIVATE -Werror -Wall -Wextra
 )
 target_link_libraries(
 	production
@@ -49,6 +57,10 @@ target_include_directories(
 target_compile_features(
 	grammar
 	PRIVATE cxx_std_17
+)
+target_compile_options(
+	grammar
+	PRIVATE -Werror -Wall -Wextra
 )
 target_link_libraries(
 	grammar
@@ -71,6 +83,10 @@ target_compile_features(
 	lexer
 	PRIVATE cxx_std_17
 )
+target_compile_options(
+	lexer
+	PRIVATE -Werror -Wall -Wextra
+)
 target_link_libraries(
 	lexer
 	PUBLIC token
@@ -91,6 +107,10 @@ target_include_directories(
 target_compile_features(
 	syntax_parser
 	PRIVATE cxx_std_17
+)
+target_compile_options(
+	syntax_parser
+	PRIVATE -Werror -Wall -Wextra
 )
 target_link_libraries(
 	syntax_parser

@@ -173,11 +173,11 @@ TEST(ProductionTest, GenearteItems) {
 		production_e_id
 	};
 	for (auto production : productions) {
-		int index = 0;
+		size_t index = 0;
 		while  (auto item = production->GenerateItems()) {
 			EXPECT_EQ(item->size(), production->size());
 			EXPECT_EQ(item->Parent(), production->Parent());
-			for (int c = 0; c < item->size(); ++c) {
+			for (size_t c = 0; c < item->size(); ++c) {
 				EXPECT_EQ(item->Child(c), production->Child(c));
 			}
 			EXPECT_EQ(item->Origin(), production);
@@ -208,6 +208,7 @@ TEST(ProductionTest, ProductionCollection) {
 			return Evaluate<double>(symbols[0]) + Evaluate<double>(symbols[2]);
 		}
 	);
+	production_e_e_add_id->SetChildren(production_set_e, op_add, identifier);
 
 	ProductionItemCollection<double> *collection = new ProductionItemCollection<double>;
 	std::vector<ProductionItem<double>*> items;

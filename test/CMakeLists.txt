@@ -15,6 +15,10 @@ target_compile_features(
 	test_logic_comparer
 	PRIVATE cxx_std_17
 )
+target_compile_options(
+	test_logic_comparer
+	PRIVATE -Werror -Wall -Wextra
+)
 target_link_libraries(
 	test_logic_comparer
 	PRIVATE gtest_main

@@ -12,9 +12,9 @@
 //-----------------------------------------------------------------------------
 
 ProductionBase::ProductionBase(Symbol *parent, size_t size, int type) noexcept
-: parent_(parent), Symbol(type), children_size_(size), setting_child_(-1) {
+: Symbol(type), parent_(parent), children_size_(size), setting_child_(-1) {
 	children_.resize(size);
-	for (int i = 0; i < size; ++i) {
+	for (size_t i = 0; i < size; ++i) {
 		children_[i] = nullptr;
 	}
 }
@@ -22,7 +22,7 @@ ProductionBase::ProductionBase(Symbol *parent, size_t size, int type) noexcept
 
 
 int ProductionBase::SetChild(size_t index, Symbol *child) noexcept {
-	if (index < 0 || index >= children_size_) return -1;
+	if (index >= children_size_) return -1;
 	if (!child) return -2;
 	children_[index] = child;
 	return 0;
@@ -33,14 +33,14 @@ int ProductionBase::SetChild(size_t index, Symbol *child) noexcept {
 int ProductionBase::SetChildren(Symbol *child) noexcept {
 	// first child
 	if (setting_child_ == -1) {
-		for (int i = 0; i != children_size_; ++i) {
+		for (size_t i = 0; i != children_size_; ++i) {
 			children_[i] = nullptr;
 		}
 		setting_child_ = 0;
 	}
 
 	// not the last child, error
-	if (setting_child_ != children_size_ - 1) {
+	if (setting_child_ != int(children_size_ - 1)) {
 		return -1;
 	}
 
@@ -106,7 +106,7 @@ template<typename EvalType>
 ProductionFactory<EvalType>::ProductionFactory(Symbol *parent, size_t size, const ActionType<EvalType> &action) noexcept
 :ProductionBase(parent, size, kSymbolType_ProductionFactory), action_(action) {
 	children_.resize(size);
-	for (int i = 0; i != size; ++i) {
+	for (size_t i = 0; i != size; ++i) {
 		children_[i] = nullptr;
 	}
 	generating_item_ = 0;

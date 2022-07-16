@@ -3,113 +3,221 @@
 #include <iostream>
 
 LogicComparer::LogicComparer() noexcept
-: parser_{grammar_, grammar_+1} {
+: parser_{grammar_, grammar_+1}, tree_root_{nullptr, nullptr} {
+}
+
+
+LogicComparer::~LogicComparer() noexcept {
+	for (size_t i = 0; i < 2; ++i) {
+		if (tree_root_[i]) {
+			FreeChildren(tree_root_[i]);
+			delete tree_root_[i];
+		}
+	}
 }
 
 
 bool LogicComparer::Compare(const std::string &line1, const std::string &line2) noexcept {
 	std::string line[2] = {line1, line2};
 	std::vector<TokenPtr> tokens[2];
-	for (int i = 0; i < 2; ++i) {
+	for (size_t i = 0; i < 2; ++i) {
 		if (lexer_[i].Analyse(line[i], tokens[i]) < 0) {
 			std::cerr << "Error: lexer analyse expression " << i << std::endl;
-		}
-
-		// // print token list for checking 
-		// std::cout << "Token list " << i << std::endl;
-		// for (auto token : tokens[i]) {
-		// 	std::cout << "  " << token->Value() << std::endl;
-		// }
-
-		// parse the token list
-		if (parser_[i].Parse(tokens[i]) < 0) {
-			std::cerr << "Error: parser parse token list " << i << std::endl;
-		}
-	}
-	return CompareIdentifiers() && CompareValues();
-}
-
-
-bool LogicComparer::CompareIdentifiers() noexcept {
-	std::vector<Identifier*> id[2] = {parser_[0].IdentifierList(), parser_[1].IdentifierList()};
-	std::vector<Identifier*> irrelevant_id[2];
-
-	for (int i = 0; i < 2; ++i) {
-		IrrelevantIdentifiers(i, irrelevant_id[i]);
-	}
-	
-	// std::cout << "irrelevant identifiers size " << irrelevant_id[0].size() << "  " << irrelevant_id[1].size() << std::endl;
-
-	if (id[0].size()-irrelevant_id[0].size() != id[1].size()-irrelevant_id[1].size()) {
-		return false;
-	}
-	for (int i = 0; i < id[0].size(); ++i) {
-		if (is_irrelevant_[0][i]) continue;
-
-		bool match = false;
-		for (int j = 0 ; j < id[1].size(); ++j) {
-			if (is_irrelevant_[1][j]) continue;
-			if (id[0][i]->Value() == id[1][j]->Value()) {
-				match = true;
-				break;
-			}
-		}
-		if (!match) return false;
-	}
-
-	// std::cout << "identifiers are the same" << std::endl;
-	return true;
-}
-
-
-bool LogicComparer::CompareValues() noexcept {
-	std::vector<Identifier*> id[2] = {parser_[0].IdentifierList(), parser_[1].IdentifierList()};
-	std::vector<Identifier*> irrelevant_id[2];
-	for (int i = 0; i < 2; ++i) {
-		IrrelevantIdentifiers(i, irrelevant_id[i]);
-	}
-	size_t size = id[0].size() - irrelevant_id[0].size();
-
-	// initialize variables
-	bool *variables = new bool[size];
-	bool irrelevant_variable = 0;
-	for (int i = 0; i < size; ++i) {
-		variables[i] = 0;
-	}
-	// attach variables
-	for (int i = 0; i < id[0].size(); ++i) {
-		if (is_irrelevant_[0][i]) {
-			// attach irrelevant variable to the first expression
-			parser_[0].AttachIdentifier(id[0][i]->Value(), (void*)&irrelevant_variable);
-		} else {
-			parser_[0].AttachIdentifier(id[0][i]->Value(), (void*)(variables+i));
-			parser_[1].AttachIdentifier(id[0][i]->Value(), (void*)(variables+i));
-		}
-	}
-	// attach irrelevant variable to the second expression
-	for (int i = 0; i < irrelevant_id[1].size(); ++i) {
-		if (!is_irrelevant_[1][i]) continue;
-		parser_[1].AttachIdentifier(id[1][i]->Value(), (void*)&irrelevant_variable);
-	}
-
-
-	while (true) {
-		// check variables
-		// for (int  i = 0; i < size; ++i) {
-		// 	std::cout << variables[i] << "  ";
-		// }
-		// std::cout << std::endl;
-		// std::cout << "value: " << parser_[0].Eval() << "  " << parser_[1].Eval() << std::endl;
-
-		if (parser_[0].Eval() != parser_[1].Eval()) {
-			std::cout << "Not equal!!!" << std::endl;
-			delete[] variables;
 			return false;
 		}
 
 
+		// parse the token list
+		if (parser_[i].Parse(tokens[i]) < 0) {
+			std::cerr << "Error: parser parse token list " << i << std::endl;
+			return false;
+		}
+	}
+
+	if (GenerateNodes() != 0) {
+		std::cerr << "Error: genrate nodes" << std::endl;
+		return false;
+	}
+	return CompareValues();
+
+}
+
+
+int LogicComparer::GenerateNodes() {
+	for (size_t index = 0; index < 2; ++index) {
+		// init the root node
+		Production<bool> *production = parser_[index].Root();
+		tree_root_[index] = new Node;
+
+		// the root production must be E
+		if (ParseE(production, tree_root_[index], 0) != 0) {
+			return -1;
+		}
+
+		// calculate the id_flag base on its children
+		tree_root_[index]->id_flag = tree_root_[index]->children[0]->id_flag;
+		if (tree_root_[index]->size == 2) {
+			tree_root_[index]->id_flag |= tree_root_[index]->children[1]->id_flag;
+		}
+	}
+	return 0;
+}
+
+
+int LogicComparer::ParseE(Production<bool> *production, struct Node* node, int layer) {
+	// there 3 productions produce by E:
+	//  1. E -> E | T
+	//  2. E -> E & T
+	//  3. E -> T
+	if (production->size() == 3) {
+		// production 1 or 2
+
+		// config the node
+		Operator *op = (Operator*)production->Child(1);
+		node->op_type = op->Value() == "|" ? kOperatorOr : kOperatorAnd;
+		node->size = 2;
+		node->id = nullptr;
+		node->cache_value = false;
+		node->children[0] = new Node;
+		node->children[1] = new Node;
+
+		// first child is produced by E
+		if (ParseE((Production<bool>*)production->Child(0), node->children[0], layer+1) != 0) {
+			return -1;
+		}
+		// second child is produced by T
+		if (ParseT((Production<bool>*)production->Child(2), node->children[1], layer+1) != 0) {
+			return -1;
+		}
+
+		// calculate identifiers flag
+		node->id_flag = node->children[0]->id_flag | node->children[1]->id_flag;
+	} else {
+		// production 3
+
+		// config the node
+		node->op_type = kOperatorNull;
+		node->size = 1;
+		node->id = nullptr;
+		node->cache_value = false;
+		node->children[0] = new Node;
+
+		// the first and only child is produced by T
+		if (ParseT((Production<bool>*)production->Child(0), node->children[0], layer+1) != 0) {
+			return -1;
+		}
+		
+		// calculate identifiers flag
+		node->id_flag = node->children[0]->id_flag;
+	}
+	return 0;
+}
+
+int LogicComparer::ParseT(Production<bool>* production, struct Node* node, int layer) {
+	// there are 2 productions produced by T
+	//  4. T -> ( E )
+	//  5. T -> id
+	if (production->size() == 3) {
+		// production 4
+
+		// config the node
+		node->op_type = kOperatorNull;
+		node->size = 1;
+		node->id = nullptr;
+		node->cache_value = false;
+		node->children[0] = new Node;
+
+		// the first and only child is produced by E
+		if (ParseE((Production<bool>*)production->Child(1), node->children[0], layer+1) != 0) {
+			return -1;
+		}
+
+		// calculate identifiers flag
+		node->id_flag = node->children[0]->id_flag;
+	} else {
+		// production 5
+		
+		// config the node
+		node->op_type = kOperatorNull;
+		node->size = 0;
+		Identifier *id = (Identifier*)production->Child(0);
+		node->id = id;
+		node->cache_value = false;
+
+		// try to find the identifier
+		int id_index = -1;
+		for (size_t i = 0; i < id_list_.size(); ++i) {
+			if (id_list_[i].id->Value() == id->Value()) {
+				id_index = id_list_[i].index;
+				break;
+			}
+		}
+		if (id_index < 0) {
+			// identifier not foound, add it to the list
+			IdentifierInfo info;
+			info.id = id;
+			info.index = id_list_.size();
+			info.layer = layer;
+			id_index = id_list_.size();
+			id_list_.push_back(info);
+		} else {
+			// found identifier, check the layer
+			if (layer > id_list_[id_index].layer) {
+				id_list_[id_index].layer = layer;
+			}
+		}
+		
+		// calculate the identifier flag
+		node->id_flag = 0;
+		node->id_flag.set(id_index);
+	}
+	return 0;
+}
+
+
+bool LogicComparer::CompareValues() {
+	// Sort the identifiers by layer and the main idea is that an identifier in
+	// lower layer will affect less nodes so that the cache can be used.
+	std::sort(id_list_.begin(), id_list_.end(), [](IdentifierInfo x, IdentifierInfo y){
+		return x.layer < y.layer;
+	});
+
+	// initialize the variables attached to identifiers
+	bool *variables = new bool[id_list_.size()];
+	for (size_t i = 0; i < id_list_.size(); ++i) {
+		variables[i] = 0;
+	}
+
+	// attach variables to the identifiers
+	for (size_t i = 0; i < id_list_.size(); ++i) {
+		if (tree_root_[0]->id_flag.test(id_list_[i].index)) {
+			parser_[0].AttachIdentifier(id_list_[i].id->Value(), variables+i);
+		}
+		if (tree_root_[1]->id_flag.test(id_list_[i].index)) {
+			parser_[1].AttachIdentifier(id_list_[i].id->Value(), variables+i);
+		}
+	}
+
+	// initialize the changed variables flags, set all at first
+	std::bitset<kMaxIdentifiers> change_var = -1;
+	// change variables in loop and compare value of two expressions
+	while (true) {
+		// evaluate
+		bool eval0 = Evaluate(tree_root_[0], change_var);
+		bool eval1 = Evaluate(tree_root_[1], change_var);
+		
+		if (eval0 != eval1) {
+			std::cerr << "Not equal!!!" << std::endl;
+			delete[] variables;
+			return false;
+		}
+
+		
+
 		// change variables
-		for (int i = 0; i < size; ++i) {
+		change_var = 0;
+		for (size_t i = 0; i < id_list_.size(); ++i) {
+			change_var.set(id_list_[i].index);
 			if (variables[i] == 0) {
 				variables[i] = 1;
 				break;
@@ -117,9 +225,10 @@ bool LogicComparer::CompareValues() noexcept {
 				variables[i] = 0;
 			}
 		}
-		// check if is 0
+
+		// check if is 0 (the end of the loop)
 		bool all_zero = true;
-		for (int i = 0; i < size; ++i) {
+		for (size_t i = 0; i < id_list_.size(); ++i) {
 			if (variables[i] == 1) {
 				all_zero = false;
 				break;
@@ -128,76 +237,83 @@ bool LogicComparer::CompareValues() noexcept {
 		if (all_zero) {
 			break;
 		}
+		
 	}
+
 
 	delete[] variables;
 	return true;
 }
 
 
-
-int LogicComparer::IrrelevantIdentifiers(int index, std::vector<Identifier*> &irrelevant_identifiers) noexcept {
-	irrelevant_identifiers.clear();
-	std::vector<Identifier*> id = parser_[index].IdentifierList();
-	is_irrelevant_[index].resize(id.size());
-
-	// attach variables
-	bool *variables = new bool[id.size()];
-	for (int i = 0; i < id.size(); ++i) {
-		parser_[index].AttachIdentifier(i, (void*)(variables+i));
-	}
-
-	// loop for identifiers 
-	for (int i = 0; i < id.size(); ++i) {
-		// initialize variables
-		for (int i = 0; i < id.size(); ++i) {
-			variables[i] = 0;
-		}
-		
-		bool not_change = true;					// whether the value of expression is changed when the specific identifier changes
-		while (not_change) {
-			bool eval1 = parser_[index].Eval();
-			// change specific variable
-			variables[i] = 1;
-			bool eval2 = parser_[index].Eval();
-			not_change = eval1 == eval2;
-			variables[i] = 0;
-
-			// change other variables
-			for (int j = 0; j < id.size(); ++j) {
-				
-				// ignore the checking identifier
-				if (j == i) continue;
-		
-				if (variables[j] == 0) {
-					variables[j] = 1;
-					break;
-				} else {
-					variables[j] = 0;
-				}
+bool LogicComparer::Evaluate(struct Node *node, std::bitset<kMaxIdentifiers> change) {
+	bool result;
+	if ((node->id_flag & change).any()) {
+		// identifiers under this node have changed
+		if (node->op_type == kOperatorNull) {
+			if (node->size) {
+				// this node is not the end, ask evaluate its child
+				result = Evaluate(node->children[0], change);
+			} else {
+				// this node is the end, evalute the identifier
+				result =  *(static_cast<bool*>(node->id->GetAttached()));
 			}
-			// check if is 0
-			bool all_zero = true;
-			for (int j = 0; j < id.size(); ++j) {
-				if (variables[j] == 1) {
-					all_zero = false;
-					break;
-				}
-			}
-			if (all_zero) {
-				break;
-			}
-
-			
-		}
-
-		if (not_change) {
-			irrelevant_identifiers.push_back(id[i]);
-			is_irrelevant_[index][i] = true;
+		} else if (node->op_type == kOperatorOr) {
+			// evalute its children
+			result = Evaluate(node->children[0], change) | Evaluate(node->children[1], change);
 		} else {
-			is_irrelevant_[index][i] = false;
+			// evalute its children
+			result = Evaluate(node->children[0], change) & Evaluate(node->children[1], change);
+		}
+		// update cache
+		node->cache_value = result;
+		return result;
+	} else {
+		// identifiers under this node havn't change, just return the cache
+		return node->cache_value;
+	}
+}
+
+
+void LogicComparer::FreeChildren(struct Node *node) {
+	for (size_t i = 0; i < node->size; ++i) {
+		FreeChildren(node->children[i]);
+		delete node->children[i];
+	}
+}
+
+
+
+void LogicComparer::PrintTree(struct Node *node, std::string prefix) {
+	// some unicode vertical and horizontal lines
+	const std::string kBoxHorizontal = "\u2500";
+	const std::string kBoxVertical = "\u2502";
+	const std::string kBoxUpRight = "\u2514";
+	const std::string kBoxVerticalRight = "\u251C";
+
+	std::string op_str = "null";
+	op_str = node->op_type == kOperatorOr ? "|" : op_str;
+	op_str = node->op_type == kOperatorAnd ? "&" : op_str;
+	std::cout << prefix << op_str << ", " << node->id_flag.to_string().substr(kMaxIdentifiers - id_list_.size(), id_list_.size()) << ", " << node->cache_value << (node->id ? ", "+node->id->Value() : "") << std::endl;
+	std::string children_prefix;
+	for (size_t i = 0; i < prefix.length(); ++i) {
+		if (prefix[i] ==  ' ') {
+			children_prefix += " ";
+		} else if (prefix.substr(i, 3) == kBoxVertical || prefix.substr(i, 3) == kBoxVerticalRight) {
+			children_prefix += kBoxVertical;
+			i += 2;
+		} else {
+			children_prefix += " ";
+			i += 2;
 		}
 	}
 
-	return 0;
+	if (node->size == 2) {
+		PrintTree(node->children[0], children_prefix + kBoxVerticalRight + kBoxHorizontal);
+	}
+
+	if (node->size > 0) {
+		PrintTree(node->children[node->size-1], children_prefix + kBoxUpRight + kBoxHorizontal);
+	}
+	return;
 }

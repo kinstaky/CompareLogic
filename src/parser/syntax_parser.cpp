@@ -75,7 +75,7 @@ int SyntaxParser<VarType>::FindSymbol(TokenPtr token) noexcept {
 		symbol_list_ = grammar_->SymbolList();
 	}
 	if (token->Type() < 0) return -1;
-	for (int i = 0; i < symbol_list_.size(); ++i) {
+	for (size_t i = 0; i < symbol_list_.size(); ++i) {
 		
 		if (token->Type() != symbol_list_[i]->Type()) {
 			continue;
@@ -112,9 +112,9 @@ int SyntaxParser<VarType>::AttachIdentifier(const std::string &name, void *var_p
 
 
 template<typename VarType>
-int SyntaxParser<VarType>::AttachIdentifier(int index, void *var_ptr) noexcept {
+int SyntaxParser<VarType>::AttachIdentifier(size_t index, void *var_ptr) noexcept {
 	if (!var_ptr) return -1;
-	if (index < 0 || index >= identifier_list_.size()) {
+	if (index >= identifier_list_.size()) {
 		return -2;
 	}
 
@@ -149,7 +149,7 @@ int SyntaxParser<VarType>::PrintTree(Symbol *symbol, std::string prefix) const n
 		if (production->size() > 0) {
 			// genearte new prefix
 			std::string children_prefix;
-			for (int i = 0; i < prefix.length(); ++i) {
+			for (size_t i = 0; i < prefix.length(); ++i) {
 				if (prefix[i] ==  ' ') {
 					// prefix is space if last line is space
 					children_prefix +=  " ";
@@ -164,7 +164,7 @@ int SyntaxParser<VarType>::PrintTree(Symbol *symbol, std::string prefix) const n
 				}
 			}
 			// print children
-			for (int i = 0; i < production->size()-1; ++i) {
+			for (size_t i = 0; i < production->size()-1; ++i) {
 				PrintTree(production->Child(i), children_prefix + kBoxVerticalRight + kBoxHorizontal);
 			}
 			PrintTree(production->Child(production->size()-1), children_prefix + kBoxUpRight + kBoxHorizontal);
@@ -199,7 +199,7 @@ SLRSyntaxParser<VarType>::SLRSyntaxParser(Grammar<VarType> *grammar)
 
 // std::cout << "start add goto and shift action" << std::endl;
 	// add goto and shift action
-	for (size_t c = 0; c != collection_size; ++c) {
+	for (int c = 0; c < collection_size; ++c) {
 		for (size_t s = 0; s != this->symbol_list_.size(); ++s) {
 			
 			// get action value
@@ -245,7 +245,7 @@ SLRSyntaxParser<VarType>::SLRSyntaxParser(Grammar<VarType> *grammar)
 
 // std::cout << "start to add reduce and accept action" << std::endl;
 	// add reduce and accept action
-	for (size_t c = 0; c != collection_size; ++c) {
+	for (int c = 0; c < collection_size; ++c) {
 		auto collection = grammar->Collection(c);
 
 		for (auto item : *collection) {
@@ -436,7 +436,7 @@ int SLRSyntaxParser<VarType>::Parse(const std::vector<TokenPtr> &tokens) {
 			ProductionFactory<VarType> *factory = (ProductionFactory<VarType>*)(action->production);
 
 			// pop several collections
-			for (int i = 0; i < factory->size(); ++i) {
+			for (size_t i = 0; i < factory->size(); ++i) {
 				collection_stack.pop();
 			}
 			look_symbol = this->grammar_->FindSymbol(factory->Parent());
@@ -463,7 +463,7 @@ int SLRSyntaxParser<VarType>::Parse(const std::vector<TokenPtr> &tokens) {
 
 			// generate syntax tree
 			Production<VarType> *production = factory->CreateProduction(processing_symbols);
-			for (int i = 0; i < factory->size(); ++i) {
+			for (size_t i = 0; i < factory->size(); ++i) {
 				processing_symbols.pop();
 			}			
 			processing_symbols.push(production);
