@@ -201,7 +201,7 @@ bool LogicComparer::CompareValues() {
 	// initialize the changed variables flags, set all at first
 	std::bitset<kMaxIdentifiers> change_var = -1;
 	// change variables in loop and compare value of two expressions
-	while (true) {
+	for (size_t i = 0; i < (1u << id_list_.size()); ++i) {
 		// evaluate
 		bool eval0 = Evaluate(tree_root_[0], change_var);
 		bool eval1 = Evaluate(tree_root_[1], change_var);
@@ -213,31 +213,25 @@ bool LogicComparer::CompareValues() {
 		}
 
 		
-
-		// change variables
-		change_var = 0;
+		// change variables base on gray code
+		// gray code in this loop
+		size_t gray = i ^ (i>>2);
+		// gary code in next loop
+		size_t next_gray = (i+1) ^ ((i+1)>>2);
+		// the change bit in gray code
+		std::bitset<kMaxIdentifiers> change_gray = (gray ^ next_gray) & ((1<<id_list_.size()) - 1);
+		// loop to find the index of change bit of gray code
 		for (size_t i = 0; i < id_list_.size(); ++i) {
-			change_var.set(id_list_[i].index);
-			if (variables[i] == 0) {
-				variables[i] = 1;
-				break;
-			} else {
-				variables[i] = 0;
-			}
-		}
-
-		// check if is 0 (the end of the loop)
-		bool all_zero = true;
-		for (size_t i = 0; i < id_list_.size(); ++i) {
-			if (variables[i] == 1) {
-				all_zero = false;
+			if (change_gray.test(i)) {
+				// found the index of change bit
+				variables[i] = !variables[i];
+				// set change bit of identifiers
+				change_var = 0;
+				change_var.set(id_list_[i].index);
 				break;
 			}
 		}
-		if (all_zero) {
-			break;
-		}
-		
+
 	}
 
 
