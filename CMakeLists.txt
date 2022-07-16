@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.16)
 # Set project properties.
 project(
 	CompareLogic
-	VERSION 1.0
+	VERSION 1.2
 	DESCRIPTION "A project to distinguish between two logical expressions"
 	LANGUAGES CXX
 )
